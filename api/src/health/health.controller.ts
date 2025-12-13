@@ -13,6 +13,11 @@ export class HealthController {
   async getDbHealth() {
     //Connectivity check
     await this.prisma.$queryRaw`SELECT 1`;
-    return { status: 'db ok' };
+
+    //Einfache Queries um sicherzustellen, dass die DB Tabellen erreichbar sind
+    const usersCount = await this.prisma.user.count();
+    const transactionsCount = await this.prisma.transaction.count();
+
+    return { status: 'db ok', usersCount, transactionsCount };
   }
 }
