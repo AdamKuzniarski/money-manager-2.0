@@ -10,6 +10,9 @@ RUN npm ci
 # Restlichen Code kopieren
 COPY . .
 
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
 # Prisma Client generieren und NesJS builden
 RUN npx prisma generate 
 RUN npm run build
@@ -25,4 +28,4 @@ COPY --from=builder /usr/src/app ./
 
 EXPOSE 4000
 
-CMD [ "node", "dist/main.js" ]
+CMD [ "node", "dist/src/main.js" ]
