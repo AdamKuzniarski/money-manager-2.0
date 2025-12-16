@@ -33,8 +33,8 @@ model Transaction{
 
   //Relation zu User 
 
-  userID Int
-  user User @relation(fields: [userID], references: [id], onDelete: Cascade)
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Ticket-Felder
   type TransactionType
@@ -47,6 +47,6 @@ createdAt DateTime @default(now())
 updatedAt DateTime @updatedAt
 
 // Index für typische Queries "alle Tranactionen eines Users nach Datum"
-@@index([userID, date])
+@@index([userId, date])
 
 }
