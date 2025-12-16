@@ -19,4 +19,7 @@ async function bootstrap() {
 
   await app.listen(port);
 }
-bootstrap();
+bootstrap().catch((error) => {
+  console.error('Error during NestJS bootstrap', error);
+  process.exit(1);
+});
