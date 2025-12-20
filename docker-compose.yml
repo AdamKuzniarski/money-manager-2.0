@@ -28,6 +28,8 @@ services:
 
       DATABASE_URL: "postgresql://postgres:postgres@db:5432/money_manager_2?schema=public"
       NODE_ENV: production
+      JWT_SECRET: "dev-super-secret-change-me"
+      JWT_EXPIRES_IN: "1h"
     ports:
       - "4000:4000"
 
