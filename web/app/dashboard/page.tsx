@@ -1,39 +1,31 @@
-import React from "react";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function DashboardPage() {
+function getApiUrl() {
+  return process.env.API_URL ?? "http://localhost:4000";
+}
+
+export default async function DashboardPage() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("mm_token")?.value;
+  if (!token) redirect("/auth/login");
+
+  const res = await fetch(`${getApiUrl()}/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+
+  if (!res.ok) redirect("/auth/login");
+
+  const me = await res.json();
+
   return (
-    <section className="space-y-4">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-          Overview
-        </h1>
-        <p>This is the placeholder dashboard for Money Manager 2.0.</p>
-      </header>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-          <p className="text-sm font-medium text-slate-300">Monthly Summary</p>
-          <p className="mt-2 text-xs text-slate-500">
-            Placeholder content - real data coming soon...
-          </p>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-        <p className="text-sm font-medium text-slate-300">
-          Recent Transactions
-        </p>
-        <p className="mt-2 text-xs text-slate-500">
-          Placeholder content - will list latest activity
-        </p>
-      </div>
-
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
-        <p className="text-sm font-medium text-slate-300">Spending Stats</p>
-        <p className="mt-2 text-xs text-slate-500">
-          Placeholder charts and insights
-        </p>
-      </div>
-    </section>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <p className="mt-2 text-zinc-400">Logged in as:</p>
+      <pre className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+        {JSON.stringify(me, null, 2)}
+      </pre>
+    </div>
   );
 }
