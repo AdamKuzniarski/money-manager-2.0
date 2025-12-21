@@ -50,7 +50,7 @@ export async function registerAction(
     } catch {}
     return { error: normalizeApiError(payload) };
   }
-  //UX - direkt tu login page +email prefill
+  //UX - direkt tu login page +email prefilled
   redirect(`/auth/login?registered=1&email=${encodeURIComponent(email)}`);
 }
 
