@@ -25,6 +25,46 @@ function mapValidationMessages(messages: string[]) {
   return fieldErrors;
 }
 
+async function readJsonSafe(res: Response) {
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function registerAction(
+  _prev: AuthActionState,
+  formData: FormData
+): Promise<AuthActionState> {
+  const email = String(formData.get("email") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+
+  const res = await fetch(`${getApiURL()}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const payload = await readJsonSafe(res);
+
+    //400: DTO Validation
+    if (res.status === 400 && Array.isArray(payload?.message)) {
+      return { fieldErrors: mapValidationMessages(payload.message) };
+    }
+
+    //409: Duplicate email
+    if (res.status === 409) {
+      return {
+        fieldErrors: { email: payload?.message ?? "Email already registered" },
+      };
+    }
+    return { formError: payload?.message ?? "Registration failed" };
+  }
+
+  redirect(`/auth/login?registered=1&email=${encodeURIComponent(email)}`);
+}
+
 function normalizeApiError(payload: unknown): string {
   if (!payload) return "Unknown error";
 
@@ -42,30 +82,6 @@ function normalizeApiError(payload: unknown): string {
   }
 
   return "Request failed";
-}
-
-export async function registerAction(
-  _prevState: AuthActionState,
-  formData: FormData
-): Promise<AuthActionState> {
-  const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
-
-  const res = await fetch(`${getApiURL()}/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-
-  if (!res.ok) {
-    let payload: unknown = null;
-    try {
-      payload = await res.json();
-    } catch {}
-    return { error: normalizeApiError(payload) };
-  }
-  //UX - direkt tu login page +email prefilled
-  redirect(`/auth/login?registered=1&email=${encodeURIComponent(email)}`);
 }
 
 export async function loginAction(
