@@ -4,11 +4,25 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export type AuthActionState = {
-  error?: string;
+  formError?: string;
+  fieldErrors?: {
+    email?: string;
+    password?: string;
+  };
 };
 
 function getApiURL() {
   return process.env.API_URL ?? "http://localhost:4000";
+}
+
+function mapValidationMessages(messages: string[]) {
+  const fieldErrors: AuthActionState["fieldErrors"] = {};
+  for (const msg of messages) {
+    const lower = msg.toLocaleLowerCase();
+    if (lower.includes("email")) fieldErrors.email = msg;
+    if (lower.includes("password")) fieldErrors.password = msg;
+  }
+  return fieldErrors;
 }
 
 function normalizeApiError(payload: unknown): string {
