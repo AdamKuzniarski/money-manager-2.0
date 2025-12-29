@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "mm_token";
-const API_URL = process.env.API_URL ?? "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 async function getMe() {
   const token = (await cookies()).get(AUTH_COOKIE_NAME)?.value;
@@ -11,11 +11,11 @@ async function getMe() {
 
   const res = await fetch(`${API_URL}/auth/me`, {
     headers: {
-      // Cookie an API weitergeben -server side
-      Cookie: `${AUTH_COOKIE_NAME}=${token}`,
+      Authorization: `Bearer ${token}`,
     },
     cache: "no-store",
   });
+
   if (!res.ok) return null;
   return res.json() as Promise<{ userId: number; email: string }>;
 }

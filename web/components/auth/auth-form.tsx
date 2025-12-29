@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useFormState } from "react-dom";
+import * as React from "react";
 import type { AuthActionState } from "@/app/auth/actions";
 import { Alert } from "../ui/alert";
 import { Input } from "../ui/input";
@@ -25,7 +25,7 @@ export function AuthForm({
   defaultEmail = "",
   infoMessage,
 }: AuthFormProps) {
-  const [state, formAction] = useFormState(action, {});
+  const [state, formAction] = React.useActionState(action, {});
 
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow">
