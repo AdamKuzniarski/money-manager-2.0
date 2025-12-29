@@ -18,17 +18,23 @@ type AuthFormProps = {
   infoMessage?: string;
 };
 
-export function AuthForm(props: AuthFormProps) {
-  const [state, formAction] = useFormState(props.action, {});
+export function AuthForm({
+  mode,
+  title,
+  action,
+  defaultEmail = "",
+  infoMessage,
+}: AuthFormProps) {
+  const [state, formAction] = useFormState(action, {});
 
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 shadow">
-      <h1 className="">{props.title}</h1>
+      <h1 className="">{title}</h1>
       <p className="mt-1 text-sm text-zinc-400"> Money Manager 2.0 - Auth</p>
 
-      {props.infoMessage ? (
+      {infoMessage ? (
         <div className="mt-4">
-          <Alert variant="success">{props.infoMessage}</Alert>
+          <Alert variant="success">{infoMessage}</Alert>
         </div>
       ) : null}
 
@@ -37,7 +43,7 @@ export function AuthForm(props: AuthFormProps) {
           label="Email"
           name="email"
           type="email"
-          defaultValue={props.defaultEmail ?? ""}
+          defaultValue={defaultEmail ?? ""}
           placeholder="you@example.com"
           required
           error={state.fieldErrors?.email}
@@ -55,10 +61,10 @@ export function AuthForm(props: AuthFormProps) {
         />
 
         <SubmitButton className="w-full" variant="primary" size="lg">
-          {props.mode === "login" ? "Log in" : "Create account"}
+          {mode === "login" ? "Log in" : "Create account"}
         </SubmitButton>
         <div className="text-center text-sm text-zinc-400">
-          {props.mode === "login" ? (
+          {mode === "login" ? (
             <>
               No account?{" "}
               <Link
