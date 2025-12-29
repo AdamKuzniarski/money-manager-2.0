@@ -11,7 +11,7 @@ export type AuthActionState = {
   };
 };
 
-function getApiURL() {
+function getApiUrl() {
   return process.env.API_URL ?? "http://localhost:4000";
 }
 
@@ -40,7 +40,7 @@ export async function registerAction(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  const res = await fetch(`${getApiURL()}/auth/register`, {
+  const res = await fetch(`${getApiUrl()}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -72,7 +72,7 @@ export async function loginAction(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  const res = await fetch(`${getApiURL()}/auth/login`, {
+  const res = await fetch(`${getApiUrl()}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -95,24 +95,27 @@ export async function loginAction(
   const token = String(payload.accessToken ?? "");
   if (!token) return { formError: "No token received from API" };
 
-  (await cookies()).set("mm_token", token, {
+  const cookieStore = await cookies();
+
+  cookieStore.set("mm_token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
   });
 
-  /* cookies().set("mm_token", token, {
+  /* (await cookies()).set("mm_token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-  });
- */
+  }); */
+
   redirect("/dashboard");
 }
 
 export async function logoutAction() {
-  (await cookies()).delete("mm_token");
+  const cookieStore = await cookies();
+  cookieStore.delete("mm_token");
   redirect("/auth/login?logout=1");
 }

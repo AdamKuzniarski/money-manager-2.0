@@ -1,21 +1,23 @@
 import { AuthForm } from "@/components/auth/auth-form";
 import { loginAction } from "../actions";
 
-type LoginSearchParams = {
+type SearchParams = {
   registered?: string;
   logout?: string;
   email?: string;
 };
 
-type LoginPageProps = {
-  searchParams: LoginSearchParams;
-};
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const sp = await searchParams;
 
-export default function LoginPage({ searchParams }: LoginPageProps) {
   const infoMessage =
-    searchParams.registered === "1"
+    sp.registered === "1"
       ? "Account created. You can log in now."
-      : searchParams.logout === "1"
+      : sp.logout === "1"
       ? "Logged out successfully."
       : undefined;
 
@@ -24,7 +26,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
       mode="login"
       title="Welcome back"
       action={loginAction}
-      defaultEmail={searchParams.email}
+      defaultEmail={sp.email}
       infoMessage={infoMessage}
     />
   );
