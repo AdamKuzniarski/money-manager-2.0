@@ -53,6 +53,33 @@ export function AuthForm(props: AuthFormProps) {
           hint="Min. 8 characters."
           error={state.fieldErrors?.password}
         />
+
+        <SubmitButton className="w-full" variant="primary" size="lg">
+          {props.mode === "login" ? "Log in" : "Create account"}
+        </SubmitButton>
+        <div className="text-center text-sm text-zinc-400">
+          {props.mode === "login" ? (
+            <>
+              No account?{" "}
+              <Link
+                className="text-emerald-400 hover:underline"
+                href="/auth/register"
+              >
+                Register
+              </Link>
+            </>
+          ) : (
+            <>
+              Already registered?{" "}
+              <Link
+                className="text-emerald-400 hover:underline"
+                href="/auth/login"
+              >
+                Log in
+              </Link>
+            </>
+          )}
+        </div>
       </form>
     </div>
   );
