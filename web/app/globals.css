@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: 9 9 11; /* zinc-950 */
+  --panel: 24 24 27; /* zinc-900 */
+  --border: 39 39 42; /* zinc-800 */
+  --text: 244 244 245; /* zinc-100 */
+  --muted: 161 161 170; /* zinc-400 */
+  --brand: 16 185 129; /* emerald-500 */
 }
 
 @theme inline {
