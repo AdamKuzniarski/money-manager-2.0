@@ -1,14 +1,22 @@
 import { AuthForm } from "@/components/auth/auth-form";
 import { loginAction } from "../actions";
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: { registered?: string; email?: string };
-}) {
+type LoginSearchParams = {
+  registered?: string;
+  logout?: string;
+  email?: string;
+};
+
+type LoginPageProps = {
+  searchParams: LoginSearchParams;
+};
+
+export default function LoginPage({ searchParams }: LoginPageProps) {
   const infoMessage =
     searchParams.registered === "1"
       ? "Account created. You can log in now."
+      : searchParams.logout === "1"
+      ? "Logged out successfully."
       : undefined;
 
   return (
