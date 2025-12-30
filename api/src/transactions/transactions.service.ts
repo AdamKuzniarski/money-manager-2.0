@@ -8,20 +8,20 @@ import { UpdateTransactionDto } from './dto/update-transaction.dto';
 export class TransactionsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listForUser(userID: number): Promise<Transaction[]> {
+  async listForUser(userId: number): Promise<Transaction[]> {
     return this.prisma.transaction.findMany({
-      where: { userID },
+      where: { userId },
       orderBy: { date: 'desc' },
     });
   }
 
   async createForUser(
-    userID: number,
+    userId: number,
     dto: CreateTransactionDto,
   ): Promise<Transaction> {
     return this.prisma.transaction.create({
       data: {
-        userID,
+        userId,
         type: dto.type,
         category: dto.category,
         amount: new Prisma.Decimal(dto.amount), //macht die Spalte dezimal
@@ -32,13 +32,13 @@ export class TransactionsService {
   }
 
   async updateForUser(
-    userID: number,
+    userId: number,
     id: number,
     dto: UpdateTransactionDto,
   ): Promise<Transaction> {
-    //Ownership check - nur go wenn id UND userID stimmen
+    //Ownership check - nur go wenn id UND userId stimmen
     const updated = await this.prisma.transaction.updateMany({
-      where: { id, userID },
+      where: { id, userId },
       data: {
         ...(dto.type !== undefined ? { type: dto.type } : {}),
         ...(dto.category !== undefined ? { category: dto.category } : {}),
@@ -57,7 +57,7 @@ export class TransactionsService {
 
     // Transaction nach dem Update zurückgeben
     const tx = await this.prisma.transaction.findFirst({
-      where: { id, userID },
+      where: { id, userId },
     });
 
     if (!tx) throw new NotFoundException('Transaction not found');
@@ -65,9 +65,9 @@ export class TransactionsService {
     return tx;
   }
 
-  async deleteForUser(userID: number, id: number): Promise<{ ok: true }> {
+  async deleteForUser(userId: number, id: number): Promise<{ ok: true }> {
     const deleted = await this.prisma.transaction.deleteMany({
-      where: { id, userID },
+      where: { id, userId },
     });
 
     if (deleted.count === 0) {
