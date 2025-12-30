@@ -20,6 +20,10 @@ export class UpdateTransactionDto {
 
   @IsOptional()
   @IsPositive()
+  amount?: string;
+
+  @IsOptional()
+  @IsPositive()
   @IsDateString()
   date?: string;
 
