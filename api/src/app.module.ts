@@ -5,6 +5,7 @@ import { HealthModule } from './health/health.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from 'prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AuthModule } from './auth/auth.module';
     HealthModule,
     PrismaModule,
     AuthModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
