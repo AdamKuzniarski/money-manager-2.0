@@ -41,14 +41,14 @@ export class TransactionsController {
     @Body() dto: UpdateTransactionDto,
   ) {
     const userId = req.user!.userId;
-    const id = Number(idParam);
+    const id = Number(idParam); // id Number(idParam) --> später mit Pipes tauschen
     return this.service.updateForUser(userId, id, dto);
   }
 
   @Delete(':id')
   async remove(@Req() req: AuthedRequest, @Param('id') idParam: string) {
     const userId = req.user!.userId;
-    const id = Number(idParam);
+    const id = Number(idParam); // id Number(idParam) --> später mit Pipes tauschen
     return this.service.deleteForUser(userId, id);
   }
 }
