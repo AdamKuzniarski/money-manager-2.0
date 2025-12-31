@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+
+
 function getApiUrl() {
   return process.env.API_URL ?? "http://localhost:4000";
 }
