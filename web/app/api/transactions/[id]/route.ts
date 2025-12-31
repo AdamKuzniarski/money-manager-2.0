@@ -8,13 +8,11 @@ const API_URL =
 
 const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "mm_token";
 
-//helper function toke aus httpOnly Cookie nehmen
 async function getToken() {
   const store = await cookies();
   return store.get(AUTH_COOKIE_NAME)?.value ?? null;
 }
 
-//helper Resoponse durchgeben
 function passthrough(upstream: Response, bodyText: string) {
   return new NextResponse(bodyText, {
     status: upstream.status,
@@ -26,37 +24,44 @@ function passthrough(upstream: Response, bodyText: string) {
   });
 }
 
-//GET kommt von /api/transactions -> nestJS /transactions
-export async function GET() {
+export async function PATCH(
+  req: Request,
+  ctx: { params: Promise<{ id: string }> }
+) {
   const token = await getToken();
-  if (!token) {
+  if (!token)
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
 
-  const upstream = await fetch(`${API_URL}/transactions`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  const text = await upstream.text();
-  return passthrough(upstream, text);
-}
-
-//POST das gleiche wie GET
-export async function POST(req: Request) {
-  const token = await getToken();
-  if (!token) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-  }
-
+  const { id } = await ctx.params;
   const body = await req.json();
 
-  const upstream = await fetch(`${API_URL}/transactions`, {
-    method: "POST",
+  const upstream = await fetch(`${API_URL}/transactions/${id}`, {
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(body),
+    cache: "no-store",
+  });
+
+  const text = await upstream.text();
+  return passthrough(upstream, text);
+}
+
+export async function DELETE(
+  _req: Request,
+  ctx: { params: Promise<{ id: string }> }
+) {
+  const token = await getToken();
+  if (!token)
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+  const { id } = await ctx.params;
+
+  const upstream = await fetch(`${API_URL}/transactions/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
 
