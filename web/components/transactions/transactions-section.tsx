@@ -79,7 +79,7 @@ export function TransactionsSection() {
         ) : null}
 
         {listError ? (
-          <div className="mt-3 rounded-xl border border-red-900/60 br-red-950/30 px-3 py-2 text-sm text-red-200">
+          <div className="mt-3 rounded-xl border border-red-900/60 bg-red-950/30 px-3 py-2 text-sm text-red-200">
             {listError}
           </div>
         ) : null}
