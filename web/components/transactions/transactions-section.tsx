@@ -1,82 +1,53 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { readJsonSafe, type Transaction } from "@/lib/transactions";
 import { TransactionForm } from "./transaction-form";
-
-export type TransactionType = "INCOME" | "EXPENSE";
-
-export type Transaction = {
-  id: number;
-  userId: number;
-  type: TransactionType;
-  category: string;
-  amount: string; // kommt von Prisma als string Dezimal
-  date: string;
-  note?: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
-
-async function readJsonSafe(res: Response) {
-  try {
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
+import { TransactionRow } from "./transactions-row";
 
 export function TransactionsSection() {
+  const router = useRouter();
+
   const [items, setItems] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
 
-  //liste wird mit useEffect geladen
-  useEffect(() => {
-    let alive = true;
+  async function load() {
+    setLoading(true);
+    setListError(null);
 
-    (async () => {
-      setLoading(true);
-      setListError(null);
+    const res = await fetch("/api/transactions", { cache: "no-store" });
+    const payload = await readJsonSafe(res);
 
-      const res = await fetch("/api/transactions", { cache: "no-store" });
-
-      if (!alive) return;
-
-      if (!res.ok) {
-        const payload = await readJsonSafe(res);
-
-        //fallback wenn Server down fallback text
-        setListError(payload?.message ?? "Could not load transactions.");
-        setItems([]);
-        setLoading(false);
+    if (!res.ok) {
+      if (res.status === 401) {
+        router.replace("/auth/login");
         return;
       }
-
-      const data = (await res.json()) as Transaction[];
-      setItems(Array.isArray(data) ? data : []);
+      setListError(payload?.message ?? "Could not load transactions.");
       setLoading(false);
-    })();
+      return;
+    }
 
-    return () => {
-      alive = false;
-    };
+    setItems(Array.isArray(payload) ? payload : []);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div className="space-y-6">
-      {/* Create */}
-      <TransactionForm
-        onCreated={(tx) => {
-          setItems((prev) => [tx, ...prev]);
-        }}
-      />
+    <div className="grid gap-6">
+      <TransactionForm onCreated={load} />
 
-      {/* List */}
-      <div className="rounded-2xl border border-zinc-400 bg-zinc-950/60 p-4">
-        <h2 className="text-lg font-semibold">Your transactions</h2>
-        {loading ? (
-          <p className="mt-3 text-sm text-zinc-400">Loading...</p>
-        ) : null}
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Your transactions</h2>
+          <span className="text-sm text-zinc-400">{items.length}</span>
+        </div>
 
         {listError ? (
           <div className="mt-3 rounded-xl border border-red-900/60 bg-red-950/30 px-3 py-2 text-sm text-red-200">
@@ -84,36 +55,19 @@ export function TransactionsSection() {
           </div>
         ) : null}
 
-        {!loading && !listError && items.length === 0 ? (
-          <p className="mt-3 text-sm text-zinc-400">
-            No transactions yet. Please create your first one
-          </p>
-        ) : null}
-
-        {!loading && !listError && items.length > 0 ? (
-          <ul className="mt-4 divide-y divide-zinc-800">
+        {loading ? (
+          <div className="mt-4 text-sm text-zinc-400">Loading…</div>
+        ) : items.length === 0 ? (
+          <div className="mt-4 text-sm text-zinc-400">
+            No transactions yet. Create your first one 👇
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-3">
             {items.map((tx) => (
-              <li
-                key={tx.id}
-                className="py-3 flex items-center justify-between"
-              >
-                <div>
-                  <div className="font-medium">
-                    {tx.type === "EXPENSE" ? "−" : "+"} {tx.category}{" "}
-                    <span className="text-zinc-400 text-sm">
-                      ({new Date(tx.date).toLocaleDateString()})
-                    </span>
-                  </div>
-                  {tx.note ? (
-                    <div className="text-sm text-zinc-400">{tx.note}</div>
-                  ) : null}
-                </div>
-
-                <div className="font-semibold tabular-nums">{tx.amount}</div>
-              </li>
+              <TransactionRow key={tx.id} tx={tx} onChanged={load} />
             ))}
-          </ul>
-        ) : null}
+          </div>
+        )}
       </div>
     </div>
   );

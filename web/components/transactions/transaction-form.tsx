@@ -1,49 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import type { Transaction, TransactionType } from "./transactions-section";
-
-type FieldErrors = {
-  type?: string;
-  category?: string;
-  amount?: string;
-  date?: string;
-  note?: string;
-};
-
-function mapValidationMessages(messages: string[]) {
-  const fieldErrors: FieldErrors = {};
-  for (const msg of messages) {
-    const lower = msg.toLowerCase();
-    if (lower.includes("type")) fieldErrors.type = msg;
-    if (lower.includes("category")) fieldErrors.category = msg;
-    if (lower.includes("amount")) fieldErrors.amount = msg;
-    if (lower.includes("date")) fieldErrors.date = msg;
-    if (lower.includes("note")) fieldErrors.note = msg;
-  }
-  return fieldErrors;
-}
-
-async function readJsonSafe(res: Response) {
-  try {
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
+import { useRouter } from "next/navigation";
+import {
+  mapValidationMessages,
+  readJsonSafe,
+  type TxFieldErrors,
+} from "@/lib/transactions";
 
 export function TransactionForm({
   onCreated,
 }: {
-  onCreated: (tx: Transaction) => void;
+  onCreated: () => Promise<void>;
 }) {
-  const [pending, setPending] = useState(false);
+  const router = useRouter();
 
-  const [formError, setFormError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [pending, setPending] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const [type, setType] = useState<TransactionType>("EXPENSE");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<TxFieldErrors>({});
+
+  const [type, setType] = useState<"EXPENSE" | "INCOME">("EXPENSE");
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
@@ -53,44 +31,41 @@ export function TransactionForm({
     e.preventDefault();
 
     setPending(true);
+    setSuccess(null);
     setFormError(null);
     setFieldErrors({});
-    setSuccess(null);
 
-    //mini client-side-validation
-    const localErrors: FieldErrors = {};
-    if (!category) localErrors.category = "Category is required.";
+    // Mini local validation
+    const local: TxFieldErrors = {};
+    if (!category.trim()) local.category = "Category is required.";
     const num = Number(amount);
     if (!Number.isFinite(num) || num <= 0)
-      localErrors.amount = "Amount must be a positive number.";
-    if (!date) localErrors.date = "Date is required.";
+      local.amount = "Amount must be a positive number.";
+    if (!date) local.date = "Date is required.";
 
-    if (Object.keys(localErrors).length > 0) {
-      setFieldErrors(localErrors);
+    if (Object.keys(local).length > 0) {
+      setFieldErrors(local);
       setPending(false);
       return;
     }
-
-    //POST zu NEXT
 
     const res = await fetch("/api/transactions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         type,
-        category,
+        category: category.trim(),
         amount: Number(amount),
-        date,
+        date, // YYYY-MM-DD
         note: note.trim() ? note.trim() : undefined,
       }),
     });
+
     const payload = await readJsonSafe(res);
 
-    //Fehler-Mapping
     if (!res.ok) {
       if (res.status === 401) {
-        setFormError("You are logged out. Please login again.");
-        setPending(false);
+        router.replace("/auth/login");
         return;
       }
 
@@ -99,19 +74,21 @@ export function TransactionForm({
         setPending(false);
         return;
       }
-    }
-    //Erfolg UI reset
-    const created = payload as Transaction;
 
-    setType("EXPENSE");
+      setFormError(payload?.message ?? "Could not create transaction.");
+      setPending(false);
+      return;
+    }
+
+    // success
     setCategory("");
     setAmount("");
     setDate("");
     setNote("");
+    setType("EXPENSE");
 
     setSuccess("Saved");
-    onCreated(created);
-
+    await onCreated(); // reload list
     setPending(false);
   }
 
@@ -133,15 +110,11 @@ export function TransactionForm({
 
       <form onSubmit={onSubmit} className="mt-4 grid gap-3 md:grid-cols-2">
         <div>
-          <label htmlFor="option" className="text-sm text-zinc-300">
-            Type
-          </label>
+          <label className="text-sm text-zinc-300">Type</label>
           <select
-            name="option"
-            id="option"
             value={type}
-            onChange={(e) => setType(e.target.value as TransactionType)}
-            className="mt-1 w-full rounded-xl border border-zinc-950 px-3 py-2"
+            onChange={(e) => setType(e.target.value as "EXPENSE" | "INCOME")}
+            className="mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2"
           >
             <option value="EXPENSE">EXPENSE</option>
             <option value="INCOME">INCOME</option>
@@ -152,9 +125,7 @@ export function TransactionForm({
         </div>
 
         <div>
-          <label htmlFor="category" className="text-sm text-zinc-300">
-            Category
-          </label>
+          <label className="text-sm text-zinc-300">Category</label>
           <input
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -167,11 +138,12 @@ export function TransactionForm({
         </div>
 
         <div>
-          <label htmlFor="amount">Amount</label>
+          <label className="text-sm text-zinc-300">Amount</label>
           <input
             value={amount}
-            type="number"
             onChange={(e) => setAmount(e.target.value)}
+            type="number"
+            step="0.01"
             placeholder="12.50"
             className="mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2"
           />
@@ -198,9 +170,12 @@ export function TransactionForm({
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Pizza + Cola…"
+            placeholder="Pizza + Cola..."
             className="mt-1 w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2"
           />
+          {fieldErrors.note ? (
+            <p className="mt-1 text-xs text-red-300">{fieldErrors.note}</p>
+          ) : null}
         </div>
 
         <div className="md:col-span-2 flex justify-end pt-2">
