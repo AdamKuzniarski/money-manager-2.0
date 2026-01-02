@@ -73,7 +73,7 @@ export function TransactionForm({
 
     //POST zu NEXT
 
-    const res = await fetch("api/transactions", {
+    const res = await fetch("/api/transactions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
