@@ -29,8 +29,9 @@ export async function PATCH(
   ctx: { params: Promise<{ id: string }> }
 ) {
   const token = await getToken();
-  if (!token)
+  if (!token) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
 
   const { id } = await ctx.params;
   const body = await req.json();
@@ -54,8 +55,9 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> }
 ) {
   const token = await getToken();
-  if (!token)
+  if (!token) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
 
   const { id } = await ctx.params;
 

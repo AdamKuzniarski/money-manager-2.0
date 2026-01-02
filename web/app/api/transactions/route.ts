@@ -8,13 +8,11 @@ const API_URL =
 
 const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "mm_token";
 
-//helper function toke aus httpOnly Cookie nehmen
 async function getToken() {
   const store = await cookies();
   return store.get(AUTH_COOKIE_NAME)?.value ?? null;
 }
 
-//helper Resoponse durchgeben
 function passthrough(upstream: Response, bodyText: string) {
   return new NextResponse(bodyText, {
     status: upstream.status,
@@ -26,7 +24,6 @@ function passthrough(upstream: Response, bodyText: string) {
   });
 }
 
-//GET kommt von /api/transactions -> nestJS /transactions
 export async function GET() {
   const token = await getToken();
   if (!token) {
@@ -37,11 +34,11 @@ export async function GET() {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
+
   const text = await upstream.text();
   return passthrough(upstream, text);
 }
 
-//POST das gleiche wie GET
 export async function POST(req: Request) {
   const token = await getToken();
   if (!token) {
