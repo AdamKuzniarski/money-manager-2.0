@@ -1,17 +1,78 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, Transaction } from '@prisma/client';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 
+type ListFilters = {
+  category?: string;
+  from?: string;
+  to?: string;
+};
+
+function startOfDay(dateStr: string): Date {
+  //query kommt meistens als "YYYY-MM-DD" -> new Date wird zu Mitternacht
+
+  const d = new Date(dateStr);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
+}
+
+function endOfDay(dateStr: string): Date {
+  const d = new Date(dateStr);
+  d.setUTCHours(23, 59, 59, 999);
+  return d;
+}
+
+function monthlyRange(month: string): { from: Date; toExclusive: Date } {
+  // month = "YYYY-MM"
+  const [y, m] = month.split('-').map((v) => Number(v));
+  const year = y;
+  const monthIndex = m - 1; //0..11
+
+  const from = new Date(Date.UTC(year, monthIndex, 1));
+  const toExclusive = new Date(Date.UTC(year, monthIndex + 1, 1));
+
+  return { from, toExclusive };
+}
+
 @Injectable()
 export class TransactionsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listForUser(userId: number): Promise<Transaction[]> {
+  async listForUser(
+    userId: number,
+    filters?: ListFilters,
+  ): Promise<Transaction[]> {
+    const where: Prisma.TransactionWhereInput = { userId };
+
+    //category filter
+    if (filters?.category) {
+      where.category = filters.category;
+    }
+
+    // Date range filters
+    if (filters?.from && filters?.to) {
+      const from = startOfDay(filters.from);
+      const to = endOfDay(filters.to);
+
+      if (from.getTime() > to.getTime()) {
+        throw new BadRequestException('from must be larger than to');
+      }
+
+      where.date = { gte: from, lte: to };
+    } else if (filters?.from) {
+      where.date = { gte: startOfDay(filters.from) };
+    } else if (filters.to) {
+      where.date = { lte: endOfDay(filters.to) };
+    }
     return this.prisma.transaction.findMany({
-      where: { userId },
-      orderBy: { date: 'desc' },
+      where,
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
     });
   }
 
@@ -21,12 +82,8 @@ export class TransactionsService {
   ): Promise<Transaction> {
     return this.prisma.transaction.create({
       data: {
+        ...dto,
         userId,
-        type: dto.type,
-        category: dto.category,
-        amount: new Prisma.Decimal(dto.amount), //macht die Spalte dezimal
-        date: new Date(dto.date),
-        note: dto.note ?? null,
       },
     });
   }
