@@ -10,10 +10,7 @@ const API_URL =
   "http://localhost:4000";
 
 const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "mm_token";
-<<<<<<< Updated upstream
-=======
 const MAX_SLICES = 8;
->>>>>>> Stashed changes
 
 const COLORS = [
   "#10b981",
@@ -24,10 +21,7 @@ const COLORS = [
   "#14b8a6",
   "#f97316",
   "#22c55e",
-<<<<<<< Updated upstream
-=======
   "#94a3b8",
->>>>>>> Stashed changes
 ];
 
 function toNumber(amount: string) {
@@ -35,8 +29,6 @@ function toNumber(amount: string) {
   return Number.isFinite(n) ? n : 0;
 }
 
-<<<<<<< Updated upstream
-=======
 function buildExpensePieData(txs: Transaction[]): ExpensePieItem[] {
   const byCategory = new Map<string, number>();
 
@@ -72,8 +64,6 @@ function buildExpensePieData(txs: Transaction[]): ExpensePieItem[] {
     },
   ];
 }
-
->>>>>>> Stashed changes
 export default async function ChartsPage() {
   const store = await cookies();
   const token = store.get(AUTH_COOKIE_NAME)?.value;
@@ -84,30 +74,6 @@ export default async function ChartsPage() {
     cache: "no-store",
   });
 
-<<<<<<< Updated upstream
-  if (!res.ok) redirect("/auth/login");
-
-  const txs = (await res.json()) as Transaction[];
-
-  const expenses = txs.filter((t) => t.type === "EXPENSE");
-  const byCategory = new Map<string, number>();
-
-  for (const tx of expenses) {
-    const category = tx.category?.trim() || "Uncategorized";
-    byCategory.set(category, (byCategory.get(category) ?? 0) + toNumber(tx.amount));
-  }
-
-  const pieData: ExpensePieItem[] = [...byCategory.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
-    .map(([label, value], idx) => ({
-      label,
-      value,
-      color: COLORS[idx % COLORS.length],
-    }));
-
-  return <ChartsPageContent expensePieData={pieData} />;
-=======
   if (res.status === 401 || res.status === 403) {
     redirect("/auth/login");
   }
@@ -119,5 +85,4 @@ export default async function ChartsPage() {
   const expensePieData = buildExpensePieData(txs);
 
   return <ChartsPageContent expensePieData={expensePieData} />;
->>>>>>> Stashed changes
 }
