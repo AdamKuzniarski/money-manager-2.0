@@ -22,14 +22,13 @@ services:
     depends_on:
       - db
     environment:
-      # Port für NestJS (wie in main.ts/ConfigService)
       API_PORT: 4000
-      # Hostname ist der Sevice-Name 'db', nicht localhost
-
       DATABASE_URL: "postgresql://postgres:postgres@db:5432/money_manager_2?schema=public"
       NODE_ENV: production
       JWT_SECRET: "dev-super-secret-change-me"
       JWT_EXPIRES_IN: "1h"
+      FRONTEND_URL: "http://localhost:3000"
+      CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000"
     ports:
       - "4000:4000"
 
@@ -42,9 +41,28 @@ services:
       - api
     environment:
       NODE_ENV: production
-      # Später nice: NEXT_PUBLIC_API_URL: "http://localhost:4000"
+<<<<<<< Updated upstream
+      # Server-side (inside Docker network)
+      API_URL: "http://api:4000"
+      # Browser-side (from host machine)
+      NEXT_PUBLIC_API_URL: "http://localhost:4000"
+=======
+      API_URL: "http://api:4000"
+      NEXT_PUBLIC_API_URL: "http://localhost:8080"
+>>>>>>> Stashed changes
     ports:
       - "3000:3000"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: money_manager-caddy
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./Caddyfile.local:/etc/caddy/Caddyfile:ro
 
 volumes:
   db_data:
