@@ -42,17 +42,36 @@ cp .env.server.example .env.server
 docker compose -f docker-compose.server.yml --env-file .env.server up -d --build
 ```
 
-3. Run Prisma migrations:
+3. Optional: force-run Prisma migrations manually:
 
 ```bash
 docker compose -f docker-compose.server.yml --env-file .env.server exec api npx prisma migrate deploy
 ```
+
+Note: migrations are already executed automatically when the `api` container starts.
 
 4. Set Vercel env vars:
 
 - `API_URL=https://<your-api-domain>`
 - `NEXT_PUBLIC_API_URL=https://<your-api-domain>`
 - `AUTH_COOKIE_NAME=mm_token` (optional, if changed in API)
+
+## One-Command Deploy Script (Server)
+
+Use:
+
+```bash
+./scripts/deploy.sh
+```
+
+Useful flags:
+
+```bash
+./scripts/deploy.sh --no-pull
+./scripts/deploy.sh --no-build
+./scripts/deploy.sh --branch main --remote origin
+./scripts/deploy.sh --env-file .env.server --compose-file docker-compose.server.yml
+```
 
 ## CORS Configuration (API)
 
