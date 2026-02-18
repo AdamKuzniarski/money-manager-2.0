@@ -82,8 +82,12 @@ export class TransactionsService {
   ): Promise<Transaction> {
     return this.prisma.transaction.create({
       data: {
-        ...dto,
         userId,
+        type: dto.type,
+        category: dto.category,
+        amount: new Prisma.Decimal(dto.amount),
+        date: new Date(dto.date),
+        note: dto.note ?? null,
       },
     });
   }
@@ -103,7 +107,15 @@ export class TransactionsService {
 
     return this.prisma.transaction.update({
       where: { id },
-      data: dto,
+      data: {
+        ...(dto.type !== undefined ? { type: dto.type } : {}),
+        ...(dto.category !== undefined ? { category: dto.category } : {}),
+        ...(dto.amount !== undefined
+          ? { amount: new Prisma.Decimal(dto.amount) }
+          : {}),
+        ...(dto.date !== undefined ? { date: new Date(dto.date) } : {}),
+        ...(dto.note !== undefined ? { note: dto.note } : {}),
+      },
     });
   }
 
