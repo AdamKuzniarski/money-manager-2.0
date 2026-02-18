@@ -40,7 +40,11 @@ export function ExpensePieChartCard({ title, data }: ExpensePieChartCardProps) {
         <ul className="space-y-2">
           {safeData.length === 0 ? (
             <li className="rounded-xl border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-400">
+<<<<<<< Updated upstream
               Keine Daten vorhanden.
+=======
+              No data available.
+>>>>>>> Stashed changes
             </li>
           ) : null}
 

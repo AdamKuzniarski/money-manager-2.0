@@ -13,6 +13,7 @@ out/
 
 # Env files
 .env
+.env.server
 .env.local
 .env.*.local
 

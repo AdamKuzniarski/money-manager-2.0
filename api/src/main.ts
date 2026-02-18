@@ -4,6 +4,14 @@ import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 
+function parseOrigins(value?: string) {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
@@ -11,9 +19,22 @@ async function bootstrap() {
   //macht Cookies aus Request lesbar (req.cookies)
   app.use(cookieParser());
 
-  // CORS enable
+  const frontendUrl = configService.get<string>('FRONTEND_URL');
+  const configuredOrigins = parseOrigins(
+    configService.get<string>('CORS_ORIGINS'),
+  );
+  const defaultOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+  const allowedOrigins = Array.from(
+    new Set(
+      [...defaultOrigins, frontendUrl, ...configuredOrigins].filter(
+        (origin): origin is string => Boolean(origin),
+      ),
+    ),
+  );
+
+  // CORS enable (local + production domains via env)
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: allowedOrigins,
     credentials: true,
   });
 
