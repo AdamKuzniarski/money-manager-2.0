@@ -1,9 +1,13 @@
 import { LogoutButton } from "@/components/auth/logout-button";
+import { DashboardMenu } from "@/components/navigation/dashboard-menu";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "mm_token";
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_URL =
+  process.env.API_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:4000";
 
 async function getMe() {
   const token = (await cookies()).get(AUTH_COOKIE_NAME)?.value;
@@ -44,6 +48,8 @@ export default async function DashboardLayout({
           </div>
         </div>
       </header>
+
+      <DashboardMenu />
 
       <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
     </div>
