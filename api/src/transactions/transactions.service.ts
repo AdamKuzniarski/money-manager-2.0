@@ -15,29 +15,36 @@ type ListFilters = {
 };
 
 function startOfDay(dateStr: string): Date {
-  //query kommt meistens als "YYYY-MM-DD" -> new Date wird zu Mitternacht
-
-  const d = new Date(dateStr);
+  const d = new Date(`${dateStr}T00:00:00.000Z`);
   d.setUTCHours(0, 0, 0, 0);
   return d;
 }
 
 function endOfDay(dateStr: string): Date {
-  const d = new Date(dateStr);
+  const d = new Date(`${dateStr}T00:00:00.000Z`);
   d.setUTCHours(23, 59, 59, 999);
   return d;
 }
 
 function monthlyRange(month: string): { from: Date; toExclusive: Date } {
-  // month = "YYYY-MM"
   const [y, m] = month.split('-').map((v) => Number(v));
   const year = y;
-  const monthIndex = m - 1; //0..11
+  const monthIndex = m - 1;
 
   const from = new Date(Date.UTC(year, monthIndex, 1));
   const toExclusive = new Date(Date.UTC(year, monthIndex + 1, 1));
 
   return { from, toExclusive };
+}
+
+function normalizeDate(dateStr: string): Date {
+  const d = new Date(`${dateStr}T00:00:00.000Z`);
+
+  if (Number.isNaN(d.getTime())) {
+    throw new BadRequestException('Invalid date');
+  }
+
+  return d;
 }
 
 @Injectable()
@@ -50,12 +57,10 @@ export class TransactionsService {
   ): Promise<Transaction[]> {
     const where: Prisma.TransactionWhereInput = { userId };
 
-    //category filter
     if (filters?.category) {
       where.category = filters.category;
     }
 
-    // Date range filters
     if (filters?.from && filters?.to) {
       const from = startOfDay(filters.from);
       const to = endOfDay(filters.to);
@@ -70,6 +75,7 @@ export class TransactionsService {
     } else if (filters?.to) {
       where.date = { lte: endOfDay(filters.to) };
     }
+
     return this.prisma.transaction.findMany({
       where,
       orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
@@ -83,6 +89,7 @@ export class TransactionsService {
     return this.prisma.transaction.create({
       data: {
         ...dto,
+        date: normalizeDate(dto.date),
         userId,
       },
     });
@@ -101,9 +108,17 @@ export class TransactionsService {
       throw new NotFoundException('Transaction not found');
     }
 
+    const data: Prisma.TransactionUpdateInput = {
+      ...dto,
+    };
+
+    if (dto.date) {
+      data.date = normalizeDate(dto.date);
+    }
+
     return this.prisma.transaction.update({
       where: { id },
-      data: dto,
+      data,
     });
   }
 
@@ -115,6 +130,7 @@ export class TransactionsService {
     if (!existing) {
       throw new NotFoundException('Transaction not found');
     }
+
     await this.prisma.transaction.delete({ where: { id } });
     return { ok: true };
   }
