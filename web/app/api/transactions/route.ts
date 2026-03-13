@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-
-const API_URL =
-  process.env.API_URL ??
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:4000";
+import { buildApiUrl } from "@/lib/api-url";
 
 const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "mm_token";
 
@@ -30,7 +26,7 @@ export async function GET() {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const upstream = await fetch(`${API_URL}/transactions`, {
+  const upstream = await fetch(buildApiUrl("/transactions"), {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });
@@ -47,7 +43,7 @@ export async function POST(req: Request) {
 
   const body = await req.json();
 
-  const upstream = await fetch(`${API_URL}/transactions`, {
+  const upstream = await fetch(buildApiUrl("/transactions"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

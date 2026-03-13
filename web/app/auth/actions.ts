@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { buildApiUrl } from "@/lib/api-url";
 
 export type AuthActionState = {
   formError?: string;
@@ -10,10 +11,6 @@ export type AuthActionState = {
     password?: string;
   };
 };
-
-function getApiUrl() {
-  return process.env.API_URL ?? "http://localhost:4000";
-}
 
 function mapValidationMessages(messages: string[]) {
   const fieldErrors: AuthActionState["fieldErrors"] = {};
@@ -40,7 +37,7 @@ export async function registerAction(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  const res = await fetch(`${getApiUrl()}/auth/register`, {
+  const res = await fetch(buildApiUrl("/auth/register"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -72,7 +69,7 @@ export async function loginAction(
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
-  const res = await fetch(`${getApiUrl()}/auth/login`, {
+  const res = await fetch(buildApiUrl("/auth/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),

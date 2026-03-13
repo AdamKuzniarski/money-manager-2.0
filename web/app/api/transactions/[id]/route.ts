@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-
-const API_URL =
-  process.env.API_URL ??
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:4000";
+import { buildApiUrl } from "@/lib/api-url";
 
 const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "mm_token";
 
@@ -36,7 +32,7 @@ export async function PATCH(
   const { id } = await ctx.params;
   const body = await req.json();
 
-  const upstream = await fetch(`${API_URL}/transactions/${id}`, {
+  const upstream = await fetch(buildApiUrl(`/transactions/${id}`), {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -61,7 +57,7 @@ export async function DELETE(
 
   const { id } = await ctx.params;
 
-  const upstream = await fetch(`${API_URL}/transactions/${id}`, {
+  const upstream = await fetch(buildApiUrl(`/transactions/${id}`), {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",

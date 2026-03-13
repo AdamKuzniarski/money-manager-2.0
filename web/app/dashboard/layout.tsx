@@ -1,19 +1,16 @@
 import { LogoutButton } from "@/components/auth/logout-button";
 import { DashboardMenu } from "@/components/navigation/dashboard-menu";
+import { buildApiUrl } from "@/lib/api-url";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "mm_token";
-const API_URL =
-  process.env.API_URL ??
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:4000";
 
 async function getMe() {
   const token = (await cookies()).get(AUTH_COOKIE_NAME)?.value;
   if (!token) return null;
 
-  const res = await fetch(`${API_URL}/auth/me`, {
+  const res = await fetch(buildApiUrl("/auth/me"), {
     headers: {
       Authorization: `Bearer ${token}`,
     },

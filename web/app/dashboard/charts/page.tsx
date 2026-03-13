@@ -1,13 +1,9 @@
 import { ChartsPageContent } from "@/components/charts/charts-page-content";
 import type { ExpensePieItem } from "@/components/charts/expense-pie-chart-card";
+import { buildApiUrl } from "@/lib/api-url";
 import type { Transaction } from "@/lib/transactions";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
-const API_URL =
-  process.env.API_URL ??
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:4000";
 
 const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "mm_token";
 const MAX_SLICES = 8;
@@ -69,7 +65,7 @@ export default async function ChartsPage() {
   const token = store.get(AUTH_COOKIE_NAME)?.value;
   if (!token) redirect("/auth/login");
 
-  const res = await fetch(`${API_URL}/transactions`, {
+  const res = await fetch(buildApiUrl("/transactions"), {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });

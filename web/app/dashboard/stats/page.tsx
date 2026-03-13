@@ -1,11 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { buildApiUrl } from "@/lib/api-url";
 import type { Transaction } from "@/lib/transactions";
-
-const API_URL =
-  process.env.API_URL ??
-  process.env.NEXT_PUBLIC_API_URL ??
-  "http://localhost:4000";
 
 const AUTH_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "mm_token";
 
@@ -23,7 +19,7 @@ export default async function StatsPage() {
   const token = store.get(AUTH_COOKIE_NAME)?.value;
   if (!token) redirect("/auth/login");
 
-  const res = await fetch(`${API_URL}/transactions`, {
+  const res = await fetch(buildApiUrl("/transactions"), {
     headers: { Authorization: `Bearer ${token}` },
     cache: "no-store",
   });

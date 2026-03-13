@@ -38,6 +38,10 @@ async function bootstrap() {
     credentials: true,
   });
 
+  app.setGlobalPrefix('api', {
+    exclude: ['health', 'health/db'],
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
